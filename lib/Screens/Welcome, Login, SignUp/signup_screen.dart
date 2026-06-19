@@ -1,3 +1,4 @@
+import 'package:chat_app/customwidgets.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -9,7 +10,6 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-
   void updateFocus() {
     setState(() {
       isEmailFocused = emailFocus.hasFocus;
@@ -154,7 +154,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ),
           ),
           //SignUp
-          InkWell(
+          BigPurpleButton(
             onTap: () async {
               final auth = FirebaseAuth.instance;
               try {
@@ -164,35 +164,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 );
                 if (!context.mounted) return;
                 Navigator.pop(context);
-              } catch (e) {
-                AlertDialog(
-                  title: Text('Invalid'),
-                  content: Text(e.toString()),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context); // close dialog
-                      },
-                      child: Text('OK', style: TextStyle(color: Colors.white)),
-                    ),
-                  ],
-                );
+              } on FirebaseAuthException catch (e) {
+                customAlertBox(e.toString(), context);
               }
             },
-            child: Container(
-              width: MediaQuery.widthOf(context),
-              margin: EdgeInsets.all(15),
-              padding: EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                color: Color(0xffbb6dce),
-                borderRadius: BorderRadius.circular((50)),
-              ),
-              child: Text(
-                "Sign Up",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-              ),
-            ),
+            text: 'Sign Up',
           ),
         ],
       ),

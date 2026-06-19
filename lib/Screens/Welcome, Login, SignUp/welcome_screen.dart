@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../customwidgets.dart';
+
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
@@ -29,47 +31,21 @@ class WelcomeScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             child: Text(
               "Chatly - Live Chatting App",
-              style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800),
+              style: TextStyle(fontSize: 23, fontWeight: FontWeight.w800),
             ),
           ),
 
-          InkWell(
-            onTap: (){
+          BigPurpleButton(
+            onTap: () {
               Navigator.pushNamed(context, 'Login');
             },
-            child: Container(
-              width: MediaQuery.widthOf(context),
-              margin: EdgeInsets.all(15),
-              padding: EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                color: Color(0xffbb6dce),
-                borderRadius: BorderRadius.circular((50)),
-              ),
-              child: Text(
-                "Log in",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-              ),
-            ),
+            text: 'Log in',
           ),
-          InkWell(
-            onTap: (){
+          BigPurpleButton(
+            onTap: () {
               Navigator.pushNamed(context, 'SignUp');
             },
-            child: Container(
-              width: MediaQuery.widthOf(context),
-              margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-              padding: EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                color: Color(0xffbb6dce),
-                borderRadius: BorderRadius.circular((50)),
-              ),
-              child: Text(
-                "Sign Up",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-              ),
-            ),
+            text: 'Sign Up',
           ),
         ],
       ),

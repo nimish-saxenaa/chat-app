@@ -1,3 +1,4 @@
+import 'package:chat_app/customwidgets.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -22,25 +23,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isPassFocused = false;
   TextEditingController emailController = TextEditingController();
   TextEditingController passController = TextEditingController();
-  void showCustomBox(String e) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Invalid'),
-          content: Text(e),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // close dialog
-              },
-              child: Text('OK', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   @override
   void initState() {
@@ -170,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
           //Login
-          InkWell(
+          BigPurpleButton(
             onTap: () async {
               final auth = FirebaseAuth.instance;
               try {
@@ -181,51 +163,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 if (!context.mounted) return;
                 Navigator.pop(context);
               } on FirebaseAuthException catch (e) {
-                switch (e.code) {
-                  case 'invalid-email':
-                    showCustomBox('Invalid email');
-                    break;
-
-                  case 'user-not-found':
-                    showCustomBox('No user found');
-                    break;
-
-                  case 'wrong-password':
-                  case 'invalid-credential':
-                  showCustomBox('Incorrect email or password');
-                    break;
-
-                  case 'user-disabled':
-                    showCustomBox('Account disabled');
-                    break;
-
-                  case 'too-many-requests':
-                    showCustomBox('Too many attempts');
-                    break;
-
-                  case 'network-request-failed':
-                    showCustomBox('No internet connection');
-                    break;
-
-                  default:
-                    showCustomBox('Error: ${e.code}');
-                }
+                customAlertBox(e.toString(), context);
               }
             },
-            child: Container(
-              width: MediaQuery.widthOf(context),
-              margin: EdgeInsets.all(15),
-              padding: EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                color: Color(0xffbb6dce),
-                borderRadius: BorderRadius.circular((50)),
-              ),
-              child: Text(
-                "Log in",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-              ),
-            ),
+            text: 'Log in',
           ),
         ],
       ),

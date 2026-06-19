@@ -23,6 +23,7 @@ class _AddNewChatScreenState extends State<AddNewChatScreen> {
   Future<bool> searchUserName(String username) async {
     var maybeUser = await _fire.collection('uids').doc(username.trim()).get();
     if (maybeUser.exists) {
+      if (maybeUser['uid'] == widget.userUid) return false;
       return true;
     } else {
       return false;
@@ -49,10 +50,8 @@ class _AddNewChatScreenState extends State<AddNewChatScreen> {
     );
   }
 
-  Future<void> goToChatIfChatExists(
-    String userUid,
-    String otherUid,
-  ) async {
+  Future<void> goToChatIfChatExists(String userUid, String otherUid) async {
+    var otherData = await getUserDataWithUid(otherUid);
     String chatId = await getChatId(userUid, otherUid);
     DocumentSnapshot docSnap = await FirebaseFirestore.instance
         .collection('chats')
@@ -66,7 +65,8 @@ class _AddNewChatScreenState extends State<AddNewChatScreen> {
           builder: (_) => ChatScreen(
             userUid: widget.userUid,
             chatId: chatId,
-            otherUid: otherUid, otherUsername: usernameController.text.trim(),
+            otherUid: otherUid,
+            otherUsername: usernameController.text.trim(), profilePic: otherData['profile'],
           ),
         ),
       );
@@ -76,7 +76,8 @@ class _AddNewChatScreenState extends State<AddNewChatScreen> {
         MaterialPageRoute(
           builder: (_) => NewChatScreen(
             userUid: widget.userUid,
-            otherUid: otherUid, otherUsername: usernameController.text.trim(),
+            otherUid: otherUid,
+            otherUsername: usernameController.text.trim(),
           ),
         ),
       );
@@ -95,8 +96,9 @@ class _AddNewChatScreenState extends State<AddNewChatScreen> {
     double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
     double availableHeight = screenHeight - keyboardHeight;
     return Scaffold(
+      appBar: AppBar(automaticallyImplyLeading: true, title: Text("back"),),
+
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           //LOGO
           Hero(

@@ -15,12 +15,11 @@ class AllChatsScreen extends StatelessWidget {
   final User? currentUser;
   final Map<String, dynamic> userData;
   late final String userUid = currentUser!.uid;
-  late final String name = userData['name'];
-  late final String userUsername = userData['username'];
   final TextEditingController searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -42,7 +41,7 @@ class AllChatsScreen extends StatelessWidget {
           child: Hero(tag: 'logo', child: Image.asset('assets/logo.png')),
         ),
         title: Center(
-          child: Text(userUsername, textAlign: TextAlign.center),
+          child: Text(userData['username'], textAlign: TextAlign.center),
         ),
         actions: [
           InkWell(
@@ -50,8 +49,8 @@ class AllChatsScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => ProfileScreen(
-                  ), settings: RouteSettings(name: '/profile'),
+                  builder: (_) => ProfileScreen(currentData: userData),
+                  settings: RouteSettings(name: '/profile'),
                 ),
               );
             },
@@ -59,7 +58,13 @@ class AllChatsScreen extends StatelessWidget {
               tag: 'profile',
               child: ClipRRect(
                 borderRadius: BorderRadiusGeometry.circular(50),
-                child: Image.asset('assets/profile.jpg'),
+                child: Image.network(
+                  userData['profile'] ?? '',
+                  fit: BoxFit.fill,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Image.asset('assets/profile.jpg', fit: BoxFit.fill);
+                  },
+                ),
               ),
             ),
           ),
@@ -131,6 +136,7 @@ class AllChatsScreen extends StatelessWidget {
                       lastMessage: oneChat['lastMessage'],
                       otherUsername: oneChat[otherUid]['username'],
                       otherName: oneChat[otherUid]['name'],
+                      otherProfile: oneChat[otherUid]['profile'] ?? '',
                     );
                   },
                 )
@@ -153,6 +159,7 @@ class ChatRow extends StatelessWidget {
     required this.lastMessage,
     required this.unReadCount,
     required this.lastTime,
+    required this.otherProfile,
   });
 
   final String id;
@@ -162,6 +169,7 @@ class ChatRow extends StatelessWidget {
   final String otherName;
   final String lastSender;
   final String lastMessage;
+  final String otherProfile;
   final int unReadCount;
   final Timestamp? lastTime;
   @override
@@ -177,6 +185,7 @@ class ChatRow extends StatelessWidget {
                 chatId: id,
                 otherUid: otherUid,
                 otherUsername: otherUsername,
+                profilePic: otherProfile
               );
             },
           ),
@@ -191,7 +200,12 @@ class ChatRow extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadiusGeometry.circular(50),
-              child: Image.asset('assets/profile.jpg'),
+              child: Image.network(
+                otherProfile,
+                errorBuilder: (context, error, stackTrace) {
+                  return Image.asset('assets/profile.jpg');
+                },
+              ),
             ),
             Expanded(
               child: Padding(

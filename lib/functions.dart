@@ -78,5 +78,9 @@ Future<Map<String, String>> getUserDataWithUid(String uid) async {
       .collection('users')
       .doc(uid)
       .get();
-  return {'username': userData['username'], 'name': userData['name']};
+  return {
+    'username': userData['username'],
+    'name': userData['name'],
+    'profile': userData['profile'] ?? "",
+  };
 }

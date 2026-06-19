@@ -10,11 +10,13 @@ class ChatScreen extends StatelessWidget {
     required this.chatId,
     required this.otherUid,
     required this.otherUsername,
+    required this.profilePic,
   });
   final String userUid;
   final String otherUid;
   final String chatId;
   final String otherUsername;
+  final String? profilePic;
   final TextEditingController controller = TextEditingController();
   final FocusNode textFieldFocus = FocusNode();
   final fire = FirebaseFirestore.instance;
@@ -59,7 +61,35 @@ class ChatScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("@ $otherUsername")),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(100),
+              child: Image.network(
+                profilePic ?? '',
+                height: kToolbarHeight-10,
+                fit: BoxFit.fill,
+                errorBuilder: (context, error, stackTrace) {
+                  return Image.asset(
+                    'assets/profile.jpg',
+                    height: kToolbarHeight-10,
+                    fit: BoxFit.fill,
+                  );
+                },
+              ),
+            ),
+            Text("   $otherUsername"),
+          ],
+        ),
+       bottom: PreferredSize(
+         preferredSize: const Size.fromHeight(1),
+         child: Container(
+           color: Colors.white.withAlpha(30),
+           height: 0.5,
+         ),
+       ),
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -235,7 +265,15 @@ class ChatBubble extends StatelessWidget {
           if (!isSameDay)
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [Text(DateFormat('d/M/y').format(timeStamp.toDate()))],
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    DateFormat('d/M/y').format(timeStamp.toDate()),
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
             ),
           Material(
             borderRadius: isUs
@@ -280,10 +318,14 @@ class ChatBubble extends StatelessWidget {
                           DateFormat('h:mm a').format(timeStamp.toDate()),
                           style: TextStyle(fontSize: 10),
                         ),
-                        if (isUs) Padding(
-                          padding: const EdgeInsets.only(left: 3),
-                          child: Icon(isRead ? Icons.done_all : Icons.done, size: 15,),
-                        ),
+                        if (isUs)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 3),
+                            child: Icon(
+                              isRead ? Icons.done_all : Icons.done,
+                              size: 15,
+                            ),
+                          ),
                       ],
                     ),
                   ],

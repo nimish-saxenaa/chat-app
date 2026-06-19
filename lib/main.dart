@@ -5,8 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_app/Screens/Chats/all_chat_screen.dart';
 import 'package:chat_app/Screens/Welcome,%20Login,%20SignUp/welcome_screen.dart';
-import 'package:chat_app/Screens/Welcome, Login, SignUp/create_username_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'Screens/Account/create_username_screen.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -53,10 +53,11 @@ class AuthGate extends StatelessWidget {
         if (authSnapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(
-              child: CircularProgressIndicator(backgroundColor: Colors.transparent,),
+              child: CircularProgressIndicator(
+                backgroundColor: Colors.transparent,
+              ),
             ),
           );
-
         }
         if (authSnapshot.data != null) {
           final user = authSnapshot.data!;
@@ -69,7 +70,9 @@ class AuthGate extends StatelessWidget {
               if (userSnapshot.connectionState == ConnectionState.waiting) {
                 return const Scaffold(
                   body: Center(
-                    child: CircularProgressIndicator(backgroundColor: Colors.transparent,),
+                    child: CircularProgressIndicator(
+                      backgroundColor: Colors.transparent,
+                    ),
                   ),
                 );
               }
@@ -99,30 +102,21 @@ class AuthFlow extends StatelessWidget {
       onGenerateRoute: (settings) {
         switch (settings.name) {
           case 'Welcome':
-            return MaterialPageRoute(
-              builder: (_) => const WelcomeScreen(),
-            );
+            return MaterialPageRoute(builder: (_) => const WelcomeScreen());
 
           case 'Login':
-            return MaterialPageRoute(
-              builder: (_) => const LoginScreen(),
-            );
+            return MaterialPageRoute(builder: (_) => const LoginScreen());
 
           case 'SignUp':
-            return MaterialPageRoute(
-              builder: (_) => const SignUpScreen(),
-            );
+            return MaterialPageRoute(builder: (_) => const SignUpScreen());
 
           default:
-            return MaterialPageRoute(
-              builder: (_) => const WelcomeScreen(),
-            );
+            return MaterialPageRoute(builder: (_) => const WelcomeScreen());
         }
       },
     );
   }
 }
-
 
 /*
 initialRoute: 'AuthGate',

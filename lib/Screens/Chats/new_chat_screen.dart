@@ -33,14 +33,13 @@ class _NewChatScreenState extends State<NewChatScreen> {
       'text': controller.text,
       'whoSent': widget.userUid,
       'timeStamp': FieldValue.serverTimestamp(),
+      'isRead' : false
     });
-    String userName = await getName(widget.userUid);
-    String userUserName = await getUsernameWithUid(widget.userUid);
-    String otherName = await getName(widget.otherUid);
-    String otherUserName = await getUsernameWithUid(widget.otherUid);
+    var userData = await getUserDataWithUid(widget.userUid);
+    var otherUserData = await getUserDataWithUid(widget.otherUid);
     batch.set(newChatRef, {
       'users': [
-        userName, userUserName, otherName, otherUserName
+        userData['name'], userData['username'], otherUserData['name'], otherUserData['username']
       ],
       'participants': [widget.userUid, widget.otherUid],
       'lastMessage': controller.text,
@@ -51,12 +50,14 @@ class _NewChatScreenState extends State<NewChatScreen> {
         widget.userUid: 0,
       },
       widget.userUid: {
-        'name': userName,
-        'username': userUserName
+        'name': userData['name'],
+        'username': userData['username'],
+        'profile' : userData['profile']
       },
       widget.otherUid: {
-        'name': otherName,
-        'username': otherUserName
+        'name': otherUserData['name'],
+        'username': otherUserData['username'],
+        'profile' : otherUserData['profile']
       },
     }, SetOptions(merge: true));
     await batch.commit();
@@ -119,7 +120,45 @@ class _NewChatScreenState extends State<NewChatScreen> {
                 ),
                 GestureDetector(
                   onTap: () async {
-                    var newChatId = await saveAndUpdate();
+                    final newChatRef = FirebaseFirestore.instance
+                        .collection('chats')
+                        .doc(await getChatId(widget.userUid, widget.otherUid));
+                    WriteBatch batch = FirebaseFirestore.instance.batch();
+
+                    var messageRef = newChatRef.collection('messages').doc();
+
+                    batch.set(messageRef, {
+                      'text': controller.text,
+                      'whoSent': widget.userUid,
+                      'timeStamp': FieldValue.serverTimestamp(),
+                      'isRead' : false
+                    });
+                    var userData = await getUserDataWithUid(widget.userUid);
+                    var otherUserData = await getUserDataWithUid(widget.otherUid);
+                    batch.set(newChatRef, {
+                      'users': [
+                        userData['name'], userData['username'], otherUserData['name'], otherUserData['username']
+                      ],
+                      'participants': [widget.userUid, widget.otherUid],
+                      'lastMessage': controller.text,
+                      'lastTime': FieldValue.serverTimestamp(),
+                      'lastSender': widget.userUid,
+                      'unReadCount': {
+                        widget.otherUid: FieldValue.increment(1),
+                        widget.userUid: 0,
+                      },
+                      widget.userUid: {
+                        'name': userData['name'],
+                        'username': userData['username'],
+                        'profile' : userData['profile']
+                      },
+                      widget.otherUid: {
+                        'name': otherUserData['name'],
+                        'username': otherUserData['username'],
+                        'profile' : otherUserData['profile']
+                      },
+                    }, SetOptions(merge: true));
+                    await batch.commit();
                     controller.clear();
 
                     if (!context.mounted) return;
@@ -128,10 +167,10 @@ class _NewChatScreenState extends State<NewChatScreen> {
                       MaterialPageRoute(
                         builder: (context) {
                           return ChatScreen(
-                            chatId: newChatId,
+                            chatId: newChatRef.id,
                             userUid: widget.userUid,
                             otherUid: widget.otherUid,
-                            otherUsername: widget.otherUsername,
+                            otherUsername: widget.otherUsername, profilePic: otherUserData['profile'],
                           );
                         },
                       ),

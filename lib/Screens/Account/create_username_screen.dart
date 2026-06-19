@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
 import 'dart:async';
+import 'profile_picture_func.dart';
 
 class CreateUsernameScreen extends StatefulWidget {
   const CreateUsernameScreen({super.key});
@@ -21,6 +25,8 @@ class _CreateUsernameScreenState extends State<CreateUsernameScreen> {
   User? currentUser;
   bool usernameAvailable = false;
   Timer? _debounce;
+  File? imgUrl;
+  bool isUp = false;
   Future<bool> checkUsername(String fieldValue) async {
     var maybeUser = await _fire.collection('uids').doc(fieldValue.trim()).get();
     if (maybeUser.exists) {
@@ -67,30 +73,171 @@ class _CreateUsernameScreenState extends State<CreateUsernameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height;
-    double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-    double availableHeight = screenHeight - keyboardHeight;
+    double screenHeight = MediaQuery.heightOf(context);
     return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        leading: Hero(
+          tag: 'logo',
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Image.asset('assets/logo.png'),
+          ),
+        ),
+        title: Text("Create Your Profile"),
+      ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          //LOGO
-          Hero(
-            tag: 'logo',
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Image.asset(
-                'assets/logo.png',
-                height: availableHeight * 0.18,
+          Padding(
+            padding: EdgeInsets.all(10),
+            child: Material(
+              child: Hero(
+                tag: 'profile',
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(100),
+                  child: isUp
+                      ? Image.file(
+                    imgUrl!,
+                    height: screenHeight * 0.18,
+                    width: screenHeight * 0.18,
+                    fit: BoxFit.fill,
+                  )
+                      : Image.asset(
+                    'assets/profile.jpg',
+                    height: screenHeight * 0.18,
+                    width: screenHeight * 0.18,
+                    fit: BoxFit.fill,
+                  ),
+                ),
               ),
             ),
           ),
-          //Title
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+
+          TextButton(
+            onPressed: () async {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        InkWell(
+                          onTap: () async {
+                            try {
+                              var a = await cropImage(
+                                await picker(ImageSource.camera),
+                              );
+
+                              setState(() {
+                                imgUrl = a;
+                                isUp = true;
+                              });
+                            } catch (e) {
+                              if (!context.mounted) return;
+                              showCustomBox(e.toString(), context);
+                            }
+                            if (!context.mounted) return;
+                            Navigator.pop(context);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 15),
+                                  child: Icon(Icons.camera_alt, size: 30),
+                                ),
+                                Text(
+                                  "Camera",
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () async {
+                            try {
+                              var a = await cropImage(
+                                await picker(ImageSource.gallery),
+                              );
+
+                              setState(() {
+                                imgUrl = a;
+                                isUp = true;
+                              });
+                            } catch (e) {
+                              if (!context.mounted) return;
+                              showCustomBox(e.toString(), context);
+                            }
+                            if (!context.mounted) return;
+                            Navigator.pop(context);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 15),
+                                  child: Icon(Icons.photo, size: 30),
+                                ),
+                                Text(
+                                  "Gallery",
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (isUp)
+                          InkWell(
+                            onTap: () async {
+                              setState(() {
+                                isUp = false;
+                              });
+                              if (!context.mounted) return;
+                              Navigator.pop(context);
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 15),
+                                    child: Icon(Icons.delete, size: 30),
+                                  ),
+                                  Text(
+                                    "Delete",
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
             child: Text(
-              "Chatly - Live Chatting App",
-              style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800),
+              isUp ? "Edit": "Add a Profile Picture",
+              style: TextStyle(
+                color: Color(0xffbb6dce),
+                decorationColor: Color(0xffbb6dce),
+                decoration: TextDecoration.underline,
+              ),
             ),
           ),
           Container(
@@ -199,24 +346,27 @@ class _CreateUsernameScreenState extends State<CreateUsernameScreen> {
           ),
 
           InkWell(
-            onTap: () {
+            onTap: () async {
               if (usernameAvailable && usernameController.text.isNotEmpty) {
                 final auth = FirebaseAuth.instance;
                 currentUser = auth.currentUser!;
-                nameController.text.isNotEmpty
-                    ? _fire.collection('users').doc(currentUser?.uid).set({
-                        'name': nameController.text.trim(),
-                        'username': usernameController.text.trim(),
-                      }, SetOptions(merge: true))
-                    : _fire.collection('users').doc(currentUser?.uid).set({
-                        'name': 'Empty',
-                        'username': usernameController.text.trim(),
-                      }, SetOptions(merge: true));
+                String? a;
+                if(isUp) {
+                  a = await uploader(imgUrl!, currentUser!.uid);
+                }
+                _fire.collection('users').doc(currentUser?.uid).set({
+                  'name': nameController.text.isNotEmpty
+                      ? nameController.text.trim()
+                      : usernameController.text.trim(),
+                  'username': usernameController.text.trim(),
+                  'profile' : isUp ? a : ""
+                }, SetOptions(merge: true));
                 _fire
                     .collection('uids')
                     .doc(usernameController.text.trim())
                     .set({'uid': currentUser?.uid}, SetOptions(merge: true));
               } else {
+                if(!context.mounted) return;
                 showUnavailableDialog(context);
               }
             },
