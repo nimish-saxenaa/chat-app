@@ -54,7 +54,8 @@ class AuthGate extends StatelessWidget {
           return const Scaffold(
             body: Center(
               child: CircularProgressIndicator(
-                backgroundColor: Colors.transparent,
+                backgroundColor: Colors.white,
+                color: Color(0xffbb6dce),
               ),
             ),
           );
@@ -71,7 +72,8 @@ class AuthGate extends StatelessWidget {
                 return const Scaffold(
                   body: Center(
                     child: CircularProgressIndicator(
-                      backgroundColor: Colors.transparent,
+                      backgroundColor: Colors.white,
+                      color: Color(0xffbb6dce),
                     ),
                   ),
                 );

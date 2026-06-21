@@ -1,5 +1,5 @@
-
 import 'package:chat_app/Screens/Account/value_edit_screen.dart';
+import 'package:chat_app/custom_widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -7,26 +7,6 @@ class ReAuthenticateScreen extends StatelessWidget {
   ReAuthenticateScreen({super.key});
   final User? currentUser = FirebaseAuth.instance.currentUser;
   final TextEditingController valueController = TextEditingController();
-
-  void showInvalidDialog(BuildContext context, String textToShow) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Invalid'),
-          content: Text(textToShow),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // close dialog
-              },
-              child: Text('OK', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +70,8 @@ class ReAuthenticateScreen extends StatelessWidget {
                     );
                   } on FirebaseAuthException catch (e) {
                     if (!context.mounted) return;
-                    showInvalidDialog(context, e.message.toString());
+                    customAlertBox(e.message.toString(), context);
+                    valueController.clear();
                   }
                 },
                 child: Container(

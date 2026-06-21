@@ -105,7 +105,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     );
                                     setData();
                                   } catch (e) {
-                                    if(!context.mounted) return;
+                                    if (!context.mounted) return;
                                     showCustomBox(e.toString(), context);
                                   }
                                   if (!context.mounted) return;
@@ -146,7 +146,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     );
                                     setData();
                                   } catch (e) {
-                                    if(!context.mounted) return;
+                                    if (!context.mounted) return;
                                     showCustomBox(e.toString(), context);
                                   }
                                   if (!context.mounted) return;
@@ -233,7 +233,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             EditRow(
               icon: Icons.person,
               label: 'Name',
-              value: userData?['name'] ?? "",
+              value: (userData?['name'] ?? '') == ''
+                  ? (userData?['username'])
+                  : userData?['name'],
               currentUser: currentUser,
             ),
             EditRow(

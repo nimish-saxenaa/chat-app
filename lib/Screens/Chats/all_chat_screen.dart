@@ -6,20 +6,26 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../functions.dart';
 
-class AllChatsScreen extends StatelessWidget {
-  AllChatsScreen({
+class AllChatsScreen extends StatefulWidget {
+  const AllChatsScreen({
     super.key,
     required this.currentUser,
     required this.userData,
   });
   final User? currentUser;
   final Map<String, dynamic> userData;
-  late final String userUid = currentUser!.uid;
+
+  @override
+  State<AllChatsScreen> createState() => _AllChatsScreenState();
+}
+
+class _AllChatsScreenState extends State<AllChatsScreen> {
+  late final String userUid = widget.currentUser!.uid;
+
   final TextEditingController searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -41,7 +47,7 @@ class AllChatsScreen extends StatelessWidget {
           child: Hero(tag: 'logo', child: Image.asset('assets/logo.png')),
         ),
         title: Center(
-          child: Text(userData['username'], textAlign: TextAlign.center),
+          child: Text(widget.userData['username'], textAlign: TextAlign.center),
         ),
         actions: [
           InkWell(
@@ -49,7 +55,7 @@ class AllChatsScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => ProfileScreen(currentData: userData),
+                  builder: (_) => ProfileScreen(currentData: widget.userData),
                   settings: RouteSettings(name: '/profile'),
                 ),
               );
@@ -59,7 +65,7 @@ class AllChatsScreen extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadiusGeometry.circular(50),
                 child: Image.network(
-                  userData['profile'] ?? '',
+                  widget.userData['profile'] ?? '',
                   fit: BoxFit.fill,
                   errorBuilder: (context, error, stackTrace) {
                     return Image.asset('assets/profile.jpg', fit: BoxFit.fill);
@@ -79,68 +85,110 @@ class AllChatsScreen extends StatelessWidget {
             .snapshots(),
         builder: (context, chatsSnapshot) {
           if (chatsSnapshot.connectionState == ConnectionState.waiting) {
-            return CircularProgressIndicator(
-              backgroundColor: Colors.transparent,
+            return const Center(
+              child: CircularProgressIndicator(
+                backgroundColor: Colors.white,
+                color: Color(0xffbb6dce),
+              ),
             );
           }
+
+          if (chatsSnapshot.hasError || !chatsSnapshot.hasData) {
+            return const Center(child: Text("Something went wrong."));
+          }
+
           final chats = chatsSnapshot.data!.docs;
-          return chats.isNotEmpty
-              ? ListView.builder(
-                  itemCount: chats.length + 1,
-                  itemBuilder: (context, index) {
-                    if (index == 0) {
-                      return Container(
-                        margin: EdgeInsets.symmetric(
-                          horizontal: 15,
-                          vertical: 7.5,
-                        ),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 15,
-                          vertical: 5,
-                        ),
 
-                        decoration: BoxDecoration(
-                          color: Colors.white.withAlpha(20),
-                          borderRadius: BorderRadius.all(Radius.circular(100)),
-                        ),
-                        child: TextField(
-                          controller: searchController,
-                          decoration: InputDecoration(
-                            hint: Text(
-                              "Search Chats...",
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 16,
-                              ),
-                            ),
+          if (chats.isEmpty) {
+            return const Center(child: Text("No Chats"));
+          }
 
-                            icon: Icon(Icons.search),
-                            border: InputBorder.none,
-                          ),
-                          style: TextStyle(),
-                        ),
-                      );
+          return Column(
+            children: [
+              // Search bar lifted OUT of ListView
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(20),
+                  borderRadius: BorderRadius.all(Radius.circular(100)),
+                ),
+                child: TextField(
+                  controller: searchController,
+                  decoration: InputDecoration(
+                    hint: Text(
+                      "Search Chats...",
+                      style: TextStyle(color: Colors.grey, fontSize: 16),
+                    ),
+
+                    icon: Icon(Icons.search),
+                    border: InputBorder.none,
+                  ),
+                  style: TextStyle(),
+                ),
+              ),
+
+              Expanded(
+                child: ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: searchController,
+                  builder: (context, value, _) {
+                    final query = value.text.trim().toLowerCase();
+
+                    final filteredChats = query.isEmpty
+                        ? chats
+                        : chats.where((doc) {
+                            final data = doc.data();
+                            final participants = data['participants'] as List;
+                            final otherUid = participants.firstWhere(
+                              (uid) => uid != userUid,
+                              orElse: () => '',
+                            );
+                            if (otherUid.isEmpty) return false;
+
+                            final otherName = (data[otherUid]?['name'] ?? '')
+                                .toLowerCase();
+                            final otherUsername =
+                                (data[otherUid]?['username'] ?? '')
+                                    .toLowerCase();
+
+                            return otherName.contains(query) ||
+                                otherUsername.contains(query);
+                          }).toList();
+
+                    if (filteredChats.isEmpty) {
+                      return const Center(child: Text("No results found."));
                     }
-                    final oneChat = chats[index - 1].data();
-                    final String otherUid =
-                        oneChat['participants'][0] != userUid
-                        ? oneChat['participants'][0]
-                        : oneChat['participants'][1];
-                    return ChatRow(
-                      userUid: userUid,
-                      id: chats[index - 1].id,
-                      lastSender: oneChat['lastSender'],
-                      unReadCount: oneChat['unReadCount'][userUid],
-                      lastTime: oneChat['lastTime'],
-                      otherUid: otherUid,
-                      lastMessage: oneChat['lastMessage'],
-                      otherUsername: oneChat[otherUid]['username'],
-                      otherName: oneChat[otherUid]['name'],
-                      otherProfile: oneChat[otherUid]['profile'] ?? '',
+
+                    return ListView.builder(
+                      itemCount: filteredChats.length,
+                      itemBuilder: (context, index) {
+                        final doc = filteredChats[index];
+                        final data = doc.data();
+                        final participants = data['participants'] as List;
+                        final otherUid = participants[0] != userUid
+                            ? participants[0]
+                            : participants[1];
+
+                        return ChatRow(
+                          userUid: userUid,
+                          id: doc.id,
+                          lastSender: data['lastSender'],
+                          unReadCount: data['unReadCount']?[userUid],
+                          lastTime: data['lastTime'],
+                          otherUid: otherUid,
+                          lastMessage: data['lastMessage'],
+                          otherUsername: data[otherUid]?['username'] ?? '',
+                          otherName: data[otherUid]?['name'] ?? '',
+                          otherProfile: data[otherUid]?['profile'] ?? '',
+                        );
+                      },
                     );
                   },
-                )
-              : Center(child: Text("No Chats"));
+                ),
+              ),
+            ],
+          );
         },
       ),
     );
@@ -175,6 +223,7 @@ class ChatRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
+
       onTap: () {
         Navigator.push(
           context,
@@ -185,17 +234,21 @@ class ChatRow extends StatelessWidget {
                 chatId: id,
                 otherUid: otherUid,
                 otherUsername: otherUsername,
-                profilePic: otherProfile
+                profilePic: otherProfile,
               );
             },
           ),
         );
       },
       child: Container(
+        margin: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
         width: MediaQuery.widthOf(context),
         height: MediaQuery.widthOf(context) / 5,
-        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        decoration: BoxDecoration(),
+        padding: EdgeInsets.symmetric(vertical: 9, horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withAlpha(20),
+          borderRadius: BorderRadius.circular(15)
+        ),
         child: Row(
           children: [
             ClipRRect(
@@ -209,22 +262,25 @@ class ChatRow extends StatelessWidget {
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(left: 15),
+                padding: const EdgeInsets.only(left: 12),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      otherName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w500,
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(text: otherName, style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w500,
+                          ),),
+                          TextSpan(text: "  @$otherUsername")
+
+                        ]
                       ),
                     ),
                     Text(
-                      lastSender == userUid ? "You: $lastMessage" : lastMessage,
+                      lastSender == userUid ? "You: $lastMessage" : "$otherUsername: $lastMessage",
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: unReadCount != 0

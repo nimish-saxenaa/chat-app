@@ -1,4 +1,4 @@
-import 'package:chat_app/customwidgets.dart';
+import 'package:chat_app/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 

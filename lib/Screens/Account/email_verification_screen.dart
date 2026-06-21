@@ -8,7 +8,8 @@ class EmailVerificationScreen extends StatefulWidget {
   final String newEmail;
 
   @override
-  State<EmailVerificationScreen> createState() => _EmailVerificationScreenState();
+  State<EmailVerificationScreen> createState() =>
+      _EmailVerificationScreenState();
 }
 
 class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
@@ -25,8 +26,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
         if (!mounted) return;
 
-        Navigator.of(context, rootNavigator: true)
-            .popUntil((route) => route.isFirst);
+        Navigator.of(
+          context,
+          rootNavigator: true,
+        ).popUntil((route) => route.isFirst);
 
         return;
       }
@@ -44,7 +47,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
               title: const Text('Email Updated'),
               content: const Text(
                 'Your email has been updated successfully.\n\n'
-                    'Please sign in again using your new email.',
+                'Please sign in again using your new email.',
               ),
               actions: [
                 TextButton(
@@ -60,21 +63,19 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
         if (!mounted) return;
 
-        Navigator.of(context, rootNavigator: true)
-            .popUntil((route) => route.isFirst);
+        Navigator.of(
+          context,
+          rootNavigator: true,
+        ).popUntil((route) => route.isFirst);
       }
     }
   }
 
   void startChecking() {
     timer?.cancel();
-
-    timer = Timer.periodic(
-      const Duration(seconds: 3),
-          (_) async {
-        await checkEmailVerified();
-      },
-    );
+    timer = Timer.periodic(const Duration(seconds: 3), (_) async {
+      await checkEmailVerified();
+    });
   }
 
   @override
@@ -86,7 +87,6 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   @override
   void initState() {
     super.initState();
-
     startChecking();
   }
 
@@ -94,17 +94,16 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Confirm Your Email")),
-      body: Center(
-        child: Column(
-          children: [
-            CircularProgressIndicator(backgroundColor: Colors.green, color: Colors.pink,),
-          ],
-        ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(
+            backgroundColor: Colors.white,
+            color: Color(0xffbb6dce),
+          ),
+        ],
       ),
     );
   }
 }
-
-/*
-
- */

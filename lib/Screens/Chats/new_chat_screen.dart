@@ -41,10 +41,6 @@ class _NewChatScreenState extends State<NewChatScreen> {
     });
     // Chat document with participant metadata and unread counters
     batch.set(newChatRef, {
-      'users': [
-        userData['name'], userData['username'],
-        otherUserData['name'], otherUserData['username'],
-      ],
       'participants': [widget.userUid, widget.otherUid],
       'lastMessage': controller.text,
       'lastTime': FieldValue.serverTimestamp(),
@@ -54,12 +50,16 @@ class _NewChatScreenState extends State<NewChatScreen> {
         widget.userUid: 0,
       },
       widget.userUid: {
-        'name': userData['name'],
+        'name': userData['name'] == ''
+            ? (userData['username'])
+            : userData['name'],
         'username': userData['username'],
         'profile': userData['profile'],
       },
       widget.otherUid: {
-        'name': otherUserData['name'],
+        'name': otherUserData['name'] == ''
+            ? {otherUserData['username']}
+            : otherUserData['name'],
         'username': otherUserData['username'],
         'profile': otherUserData['profile'],
       },
@@ -86,7 +86,10 @@ class _NewChatScreenState extends State<NewChatScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Send Your First Message!', style: TextStyle(fontSize: 20)),
+                  Text(
+                    'Send Your First Message!',
+                    style: TextStyle(fontSize: 20),
+                  ),
                 ],
               ),
             ),
@@ -96,11 +99,23 @@ class _NewChatScreenState extends State<NewChatScreen> {
                 Expanded(
                   child: Container(
                     height: 60,
-                    margin: const EdgeInsets.only(left: 15, top: 5, right: 5, bottom: 5),
-                    padding: const EdgeInsets.only(left: 25, top: 5, right: 15, bottom: 5),
+                    margin: const EdgeInsets.only(
+                      left: 15,
+                      top: 5,
+                      right: 5,
+                      bottom: 5,
+                    ),
+                    padding: const EdgeInsets.only(
+                      left: 25,
+                      top: 5,
+                      right: 15,
+                      bottom: 5,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withAlpha(20),
-                      borderRadius: const BorderRadius.all(Radius.circular(100)),
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(100),
+                      ),
                     ),
                     child: TextField(
                       autofocus: true,
@@ -118,7 +133,9 @@ class _NewChatScreenState extends State<NewChatScreen> {
                   onTap: () async {
                     if (controller.text.trim().isEmpty) return;
                     final chatId = await saveAndUpdate();
-                    final otherUserData = await getUserDataWithUid(widget.otherUid);
+                    final otherUserData = await getUserDataWithUid(
+                      widget.otherUid,
+                    );
                     if (!context.mounted) return;
                     Navigator.pushReplacement(
                       context,

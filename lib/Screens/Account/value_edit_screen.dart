@@ -35,6 +35,9 @@ class ValueEditScreen extends StatelessWidget {
           updateBatch.set(doc.reference, {
             currentUser.uid: {'name': valueController.text.trim()},
           }, SetOptions(merge: true));
+          updateBatch.set(doc.reference, {
+            currentUser.uid: {'name': valueController.text.trim()},
+          }, SetOptions(merge: true));
         }
         break;
 

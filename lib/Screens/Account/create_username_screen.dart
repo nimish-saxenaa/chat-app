@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'package:chat_app/custom_widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -42,27 +42,6 @@ class _CreateUsernameScreenState extends State<CreateUsernameScreen> {
       isUsernameFocused = usernameFocus.hasFocus;
     });
   }
-
-  void showUnavailableDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Invalid'),
-          content: Text('This username is unavailable'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // close dialog
-              },
-              child: Text('OK', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   void initState() {
     // TODO: implement initState
@@ -98,17 +77,17 @@ class _CreateUsernameScreenState extends State<CreateUsernameScreen> {
                   borderRadius: BorderRadius.circular(100),
                   child: isUp
                       ? Image.file(
-                    imgUrl!,
-                    height: screenHeight * 0.18,
-                    width: screenHeight * 0.18,
-                    fit: BoxFit.fill,
-                  )
+                          imgUrl!,
+                          height: screenHeight * 0.18,
+                          width: screenHeight * 0.18,
+                          fit: BoxFit.fill,
+                        )
                       : Image.asset(
-                    'assets/profile.jpg',
-                    height: screenHeight * 0.18,
-                    width: screenHeight * 0.18,
-                    fit: BoxFit.fill,
-                  ),
+                          'assets/profile.jpg',
+                          height: screenHeight * 0.18,
+                          width: screenHeight * 0.18,
+                          fit: BoxFit.fill,
+                        ),
                 ),
               ),
             ),
@@ -232,7 +211,7 @@ class _CreateUsernameScreenState extends State<CreateUsernameScreen> {
               );
             },
             child: Text(
-              isUp ? "Edit": "Add a Profile Picture",
+              isUp ? "Edit" : "Add a Profile Picture",
               style: TextStyle(
                 color: Color(0xffbb6dce),
                 decorationColor: Color(0xffbb6dce),
@@ -351,23 +330,23 @@ class _CreateUsernameScreenState extends State<CreateUsernameScreen> {
                 final auth = FirebaseAuth.instance;
                 currentUser = auth.currentUser!;
                 String? a;
-                if(isUp) {
+                if (isUp) {
                   a = await uploader(imgUrl!, currentUser!.uid);
                 }
                 _fire.collection('users').doc(currentUser?.uid).set({
                   'name': nameController.text.isNotEmpty
                       ? nameController.text.trim()
                       : usernameController.text.trim(),
-                  'username': usernameController.text.trim(),
-                  'profile' : isUp ? a : ""
+                  'username': usernameController.text.trim().toLowerCase(),
+                  'profile': isUp ? a : "",
                 }, SetOptions(merge: true));
                 _fire
                     .collection('uids')
                     .doc(usernameController.text.trim())
                     .set({'uid': currentUser?.uid}, SetOptions(merge: true));
               } else {
-                if(!context.mounted) return;
-                showUnavailableDialog(context);
+                if (!context.mounted) return;
+                customAlertBox('This username is unavailable', context);
               }
             },
             child: Container(
